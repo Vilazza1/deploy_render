@@ -164,25 +164,78 @@ def listar_usados():
         <title>QR Codes Usados</title>
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <style>
-            body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
-            h1 { text-align: center; }
-            ul { max-width: 600px; margin: 20px auto; padding: 0; list-style: none; }
-            li { background: white; margin: 5px 0; padding: 12px 20px; border-radius: 8px; font-size: 18px; }
-            a { display: block; max-width: 200px; margin: 20px auto; text-align: center; text-decoration: none; color: #007bff; }
-            a:hover { text-decoration: underline; }
+            body {
+                font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+                background: #eef1f5;
+                margin: 0;
+                padding: 0;
+            }
+            .container {
+                max-width: 800px;
+                margin: 0 auto;
+                padding: 40px 20px;
+            }
+            h1 {
+                text-align: center;
+                margin-bottom: 30px;
+                color: #333;
+            }
+            .qrcode-list {
+                display: grid;
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+                gap: 20px;
+                list-style: none;
+                padding: 0;
+            }
+            .qrcode-card {
+                background: white;
+                border-radius: 12px;
+                padding: 20px;
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+                font-size: 16px;
+                word-break: break-word;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                transition: transform 0.2s;
+            }
+            .qrcode-card:hover {
+                transform: scale(1.02);
+            }
+            .icon {
+                font-size: 20px;
+                color: #4CAF50;
+            }
+            .back-link {
+                display: block;
+                margin: 30px auto 0;
+                text-align: center;
+                font-size: 18px;
+                color: #007bff;
+                text-decoration: none;
+            }
+            .back-link:hover {
+                text-decoration: underline;
+            }
         </style>
     </head>
     <body>
-        <h1>QR Codes Escaneados</h1>
-        <ul>
+        <div class="container">
+            <h1>QR Codes Escaneados</h1>
+            <ul class="qrcode-list">
     """
 
     for codigo in usados:
-        html += f"<li>{codigo}</li>"
+        html += f"""
+        <li class="qrcode-card">
+            <span class="icon">✅</span> {codigo}
+        </li>
+        """
 
     html += """
-        </ul>
-        <a href="/">Voltar para a página inicial</a>
+            </ul>
+            <a class="back-link" href="/">← Voltar para a página inicial</a>
+        </div>
     </body>
     </html>
     """
