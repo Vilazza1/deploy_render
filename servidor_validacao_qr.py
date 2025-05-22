@@ -133,27 +133,62 @@ def home():
 
 @app.route("/validar/<codigo>")
 def validar_qrcode(codigo):
-    from urllib.parse import unquote
     codigo = unquote(codigo)
 
-    with open(ARQUIVO_USADOS, "r") as f:
-        usados = json.load(f)
+    try:
+        dados = json.loads(codigo)  # tenta interpretar JSON
 
-    if codigo in usados:
-        mensagem = "⚠️ QRCODE JÁ USADO!<br><small>Este código já foi validado anteriormente.</small>"
-        cor = "#ff4d4d"
-    else:
-        mensagem = "✅ QRCODE VÁLIDO!<br><small>Bem-vindo ao evento 🎉</small>"
-        usados.append(codigo)
-        with open(ARQUIVO_USADOS, "w") as f:
-            json.dump(usados, f, indent=4)
-        cor = "#4CAF50"
+        with open(ARQUIVO_USADOS, "r") as f:
+            usados = json.load(f)
 
-    html = f"""
-    <div style="background:{cor};padding:20px;border-radius:10px;color:white;font-size:22px;max-width:500px;margin:20px auto;">
-        {mensagem}
-    </div>
-    """
+        if codigo in usados:
+            mensagem = """
+            <div style="color:#ff4d4d; font-weight:bold; font-size:24px;">⚠️ QRCODE JÁ USADO!</div>
+            <small>Este código já foi validado anteriormente.</small>
+            """
+            cor = "#ffdddd"
+        else:
+            mensagem = """
+            <div style="color:#4CAF50; font-weight:bold; font-size:24px;">✅ QRCODE VÁLIDO!</div>
+            <small>Bem-vindo ao evento 🎉</small>
+            """
+            usados.append(codigo)
+            with open(ARQUIVO_USADOS, "w") as f:
+                json.dump(usados, f, indent=4)
+            cor = "#ddffdd"
+
+        detalhes = "<ul style='list-style:none; padding-left:0; font-size:18px; text-align:left;'>"
+        for chave, valor in dados.items():
+            detalhes += f"<li><strong>{chave.replace('_', ' ').title()}:</strong> {valor}</li>"
+        detalhes += "</ul>"
+
+        html = f"""
+        <div style="background:{cor};padding:20px;border-radius:10px; max-width:500px; margin:20px auto; color:#333; font-family: Arial, sans-serif;">
+            {mensagem}
+            {detalhes}
+        </div>
+        """
+    except json.JSONDecodeError:
+        with open(ARQUIVO_USADOS, "r") as f:
+            usados = json.load(f)
+
+        if codigo in usados:
+            mensagem = "⚠️ QRCODE JÁ USADO!<br><small>Este código já foi validado anteriormente.</small>"
+            cor = "#ff4d4d"
+        else:
+            mensagem = "✅ QRCODE VÁLIDO!<br><small>Bem-vindo ao evento 🎉</small>"
+            usados.append(codigo)
+            with open(ARQUIVO_USADOS, "w") as f:
+                json.dump(usados, f, indent=4)
+            cor = "#4CAF50"
+
+        html = f"""
+        <div style="background:{cor};padding:20px;border-radius:10px;color:white;font-size:22px;max-width:500px;margin:20px auto;">
+            {mensagem}<br><br>
+            <strong>Código:</strong> {codigo}
+        </div>
+        """
+
     return html
 
 @app.route("/usados")
