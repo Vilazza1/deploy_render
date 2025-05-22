@@ -13,7 +13,7 @@ if not os.path.exists(ARQUIVO_USADOS):
 
 @app.route("/")
 def home():
-    html = """
+    return """
     <!DOCTYPE html>
     <html>
     <head>
@@ -90,7 +90,7 @@ def home():
                             { fps: 10, qrbox: 250 },
                             (decodedText, decodedResult) => {
                                 scanner.stop().then(() => {
-                                    scanner.clear();  // limpa o scanner
+                                    scanner.clear();
                                     reader.style.display = 'none';
                                     btnScan.style.display = 'block';
 
@@ -100,7 +100,7 @@ def home():
                                         .then(response => response.text())
                                         .then(html => {
                                             mensagemBox.innerHTML = html;
-                                            scanner = null; // permite novo scanner no próximo clique
+                                            scanner = null;
                                         })
                                         .catch(err => {
                                             mensagemBox.innerHTML = "Erro ao validar código.";
@@ -110,7 +110,7 @@ def home():
                                 });
                             },
                             errorMessage => {
-                                // Ignora erros temporários de leitura
+                                // Ignora erros temporários
                             }
                         ).catch(err => {
                             mensagemBox.innerHTML = "Não foi possível iniciar a câmera.";
@@ -129,33 +129,35 @@ def home():
     </body>
     </html>
     """
-    return html
 
 @app.route("/validar/<codigo>")
 def validar_qrcode(codigo):
     codigo = unquote(codigo)
 
     try:
-        dados = json.loads(codigo)  # tenta interpretar JSON
+        dados = json.loads(codigo)
 
         with open(ARQUIVO_USADOS, "r") as f:
             usados = json.load(f)
 
         if codigo in usados:
-            mensagem = """
-            <div style="color:#ff4d4d; font-weight:bold; font-size:24px;">⚠️ QRCODE JÁ USADO!</div>
-            <small>Este código já foi validado anteriormente.</small>
-            """
+            mensagem = "<div style='color:#ff4d4d; font-weight:bold; font-size:24px;'>⚠️ QRCODE JÁ USADO!</div><small>Este código já foi validado anteriormente.</small>"
             cor = "#ffdddd"
         else:
-            mensagem = """
-            <div style="color:#4CAF50; font-weight:bold; font-size:24px;">✅ QRCODE VÁLIDO!</div>
-            <small>Bem-vindo ao evento 🎉</small>
-            """
+            mensagem = "<div style='color:#4CAF50; font-weight:bold; font-size:24px;'>✅ QRCODE VÁLIDO!</div><small>Bem-vindo ao evento 🎉</small>"
             usados.append(codigo)
             with open(ARQUIVO_USADOS, "w") as f:
                 json.dump(usados, f, indent=4)
             cor = "#ddffdd"
+
+        # Tipo (titular/acompanhante)
+        tipo = dados.get("tipo", "").lower()
+        if tipo == "titular":
+            cabecalho = "<h3 style='color:#007bff;'>🎫 Titular</h3>"
+        elif tipo == "acompanhante":
+            cabecalho = "<h3 style='color:#555;'>👥 Acompanhante</h3>"
+        else:
+            cabecalho = ""
 
         detalhes = "<ul style='list-style:none; padding-left:0; font-size:18px; text-align:left;'>"
         for chave, valor in dados.items():
@@ -165,6 +167,7 @@ def validar_qrcode(codigo):
         html = f"""
         <div style="background:{cor};padding:20px;border-radius:10px; max-width:500px; margin:20px auto; color:#333; font-family: Arial, sans-serif;">
             {mensagem}
+            {cabecalho}
             {detalhes}
         </div>
         """
