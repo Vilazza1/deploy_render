@@ -48,6 +48,16 @@ def home():
                 font-size: 20px;
                 color: #333;
             }
+            a.usados-link {
+                display: inline-block;
+                margin-top: 20px;
+                font-size: 18px;
+                color: #007bff;
+                text-decoration: none;
+            }
+            a.usados-link:hover {
+                text-decoration: underline;
+            }
         </style>
         <script src="https://unpkg.com/html5-qrcode"></script>
     </head>
@@ -55,6 +65,8 @@ def home():
         <div class="box" id="mensagem">Clique em "Escanear QR Code" para começar</div>
         <button id="btnScan">Escanear QR Code</button>
         <div id="reader" style="display:none;"></div>
+        <br>
+        <a href="/usados" class="usados-link">Ver QR Codes escaneados</a>
 
         <script>
             const btnScan = document.getElementById('btnScan');
@@ -136,6 +148,44 @@ def validar_qrcode(codigo):
     <div style="background:{cor};padding:20px;border-radius:10px;color:white;font-size:22px;max-width:500px;margin:20px auto;">
         {mensagem}
     </div>
+    """
+    return html
+
+@app.route("/usados")
+def listar_usados():
+    if os.path.exists(ARQUIVO_USADOS):
+        with open(ARQUIVO_USADOS, "r") as f:
+            usados = json.load(f)
+    else:
+        usados = []
+
+    html = """
+    <html>
+    <head>
+        <title>QR Codes Usados</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; background: #f7f7f7; }
+            h1 { text-align: center; }
+            ul { max-width: 600px; margin: 20px auto; padding: 0; list-style: none; }
+            li { background: white; margin: 5px 0; padding: 12px 20px; border-radius: 8px; font-size: 18px; }
+            a { display: block; max-width: 200px; margin: 20px auto; text-align: center; text-decoration: none; color: #007bff; }
+            a:hover { text-decoration: underline; }
+        </style>
+    </head>
+    <body>
+        <h1>QR Codes Escaneados</h1>
+        <ul>
+    """
+
+    for codigo in usados:
+        html += f"<li>{codigo}</li>"
+
+    html += """
+        </ul>
+        <a href="/">Voltar para a página inicial</a>
+    </body>
+    </html>
     """
     return html
 
