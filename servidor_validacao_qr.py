@@ -1,6 +1,8 @@
-from flask import Flask, request
+from flask import Flask, request, send_file
 import os
 import json
+from io import BytesIO
+from openpyxl import Workbook
 
 app = Flask(__name__)
 ARQUIVO_USADOS = "usados.json"
@@ -187,12 +189,49 @@ def listar_usados():
 
     html += """
             </ul>
+            <a class="back-link" href="/exportar_excel">⬇️ Baixar Excel</a>
             <a class="back-link" href="/">← Voltar para a página inicial</a>
         </div>
     </body>
     </html>
     """
     return html
+
+@app.route("/exportar_excel")
+def exportar_excel():
+    if not os.path.exists(ARQUIVO_USADOS):
+        return "Nenhum dado para exportar", 404
+
+    with open(ARQUIVO_USADOS, "r") as f:
+        usados = json.load(f)
+
+    wb = Workbook()
+    ws = wb.active
+    ws.title = "QR Codes Usados"
+    ws.append(["Código Completo", "Nome", "Tipo", "Outros Campos"])
+
+    for item in usados:
+        try:
+            dados = json.loads(item)
+            nome = dados.get("nome", "")
+            tipo = dados.get("tipo", "")
+            outros = ", ".join(f"{k}: {v}" for k, v in dados.items() if k not in ["nome", "tipo"])
+        except:
+            nome = ""
+            tipo = ""
+            outros = ""
+        ws.append([item, nome, tipo, outros])
+
+    output = BytesIO()
+    wb.save(output)
+    output.seek(0)
+
+    return send_file(
+        output,
+        as_attachment=True,
+        download_name="qrcodes_usados.xlsx",
+        mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    )
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
