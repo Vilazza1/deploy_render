@@ -17,12 +17,37 @@ def home():
     <html>
     <head>
         <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Scanner QR Code</title>
         <style>
-            body { font-family: Arial, sans-serif; background: #f7f7f7; text-align: center; padding: 50px; }
-            #reader { width: 300px; margin: 20px auto; }
-            button { font-size: 18px; padding: 10px 20px; margin-top: 30px; cursor: pointer; }
-            .box { margin: 20px auto; max-width: 500px; font-size: 24px; color: #333; }
+            body {
+                font-family: Arial, sans-serif;
+                background: #f7f7f7;
+                text-align: center;
+                padding: 20px;
+                margin: 0;
+            }
+            #reader {
+                width: 100%;
+                max-width: 400px;
+                margin: 20px auto;
+            }
+            button {
+                font-size: 18px;
+                padding: 12px 24px;
+                margin-top: 30px;
+                cursor: pointer;
+                background: #007bff;
+                color: white;
+                border: none;
+                border-radius: 8px;
+            }
+            .box {
+                margin: 20px auto;
+                max-width: 90%;
+                font-size: 20px;
+                color: #333;
+            }
         </style>
         <script src="https://unpkg.com/html5-qrcode"></script>
     </head>
@@ -45,10 +70,11 @@ def home():
 
                 Html5Qrcode.getCameras().then(devices => {
                     if (devices && devices.length) {
-                        const cameraId = devices[0].id;
+                        // Tenta usar a câmera traseira
+                        const backCamera = devices.find(device => device.label.toLowerCase().includes('back')) || devices[0];
 
                         scanner.start(
-                            cameraId,
+                            backCamera.id,
                             { fps: 10, qrbox: 250 },
                             (decodedText, decodedResult) => {
                                 scanner.stop().then(() => {
