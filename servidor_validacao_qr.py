@@ -1,4 +1,5 @@
 from flask import Flask
+from urllib.parse import unquote
 import os
 import json
 
@@ -89,6 +90,7 @@ def home():
                             { fps: 10, qrbox: 250 },
                             (decodedText, decodedResult) => {
                                 scanner.stop().then(() => {
+                                    scanner.clear();  // limpa o scanner
                                     reader.style.display = 'none';
                                     btnScan.style.display = 'block';
 
@@ -98,6 +100,7 @@ def home():
                                         .then(response => response.text())
                                         .then(html => {
                                             mensagemBox.innerHTML = html;
+                                            scanner = null; // permite novo scanner no próximo clique
                                         })
                                         .catch(err => {
                                             mensagemBox.innerHTML = "Erro ao validar código.";
@@ -107,7 +110,7 @@ def home():
                                 });
                             },
                             errorMessage => {
-                                // Ignorar erros de leitura temporários
+                                // Ignora erros temporários de leitura
                             }
                         ).catch(err => {
                             mensagemBox.innerHTML = "Não foi possível iniciar a câmera.";
@@ -130,6 +133,9 @@ def home():
 
 @app.route("/validar/<codigo>")
 def validar_qrcode(codigo):
+    from urllib.parse import unquote
+    codigo = unquote(codigo)
+
     with open(ARQUIVO_USADOS, "r") as f:
         usados = json.load(f)
 
