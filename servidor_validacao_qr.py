@@ -5,7 +5,7 @@ import json
 app = Flask(__name__)
 ARQUIVO_USADOS = "usados.json"
 
-# Garante que o arquivo de controle exista
+# Cria arquivo de controle se não existir
 if not os.path.exists(ARQUIVO_USADOS):
     with open(ARQUIVO_USADOS, "w") as f:
         json.dump([], f)
@@ -27,7 +27,7 @@ def home():
         <script src="https://unpkg.com/html5-qrcode"></script>
     </head>
     <body>
-        <div class="box" id="mensagem"></div>
+        <div class="box" id="mensagem">Clique em "Escanear QR Code" para começar</div>
         <button id="btnScan">Escanear QR Code</button>
         <div id="reader" style="display:none;"></div>
 
@@ -37,43 +37,54 @@ def home():
             const mensagemBox = document.getElementById('mensagem');
             let scanner;
 
-            btnScan.addEventListener('click', () => {{
+            btnScan.addEventListener('click', () => {
                 btnScan.style.display = 'none';
                 reader.style.display = 'block';
 
                 scanner = new Html5Qrcode("reader");
-                scanner.start(
-                    {{ facingMode: "environment" }},
-                    {{
-                        fps: 10,
-                        qrbox: 250
-                    }},
-                    (decodedText, decodedResult) => {{
-                        scanner.stop().then(() => {{
-                            reader.style.display = 'none';
+
+                Html5Qrcode.getCameras().then(devices => {
+                    if (devices && devices.length) {
+                        const cameraId = devices[0].id;
+
+                        scanner.start(
+                            cameraId,
+                            { fps: 10, qrbox: 250 },
+                            (decodedText, decodedResult) => {
+                                scanner.stop().then(() => {
+                                    reader.style.display = 'none';
+                                    btnScan.style.display = 'block';
+
+                                    mensagemBox.innerHTML = `Validando código: <b>${decodedText}</b> ...`;
+
+                                    fetch('/validar/' + encodeURIComponent(decodedText))
+                                        .then(response => response.text())
+                                        .then(html => {
+                                            mensagemBox.innerHTML = html;
+                                        })
+                                        .catch(err => {
+                                            mensagemBox.innerHTML = "Erro ao validar código.";
+                                        });
+                                }).catch(err => {
+                                    console.error('Erro ao parar o scanner', err);
+                                });
+                            },
+                            errorMessage => {
+                                // erros silenciosos durante leitura
+                            }
+                        ).catch(err => {
+                            mensagemBox.innerHTML = "Não foi possível iniciar a câmera.";
                             btnScan.style.display = 'block';
-
-                            mensagemBox.innerHTML = `Validando código: <b>${{decodedText}}</b> ...`;
-
-                            fetch('/validar/' + encodeURIComponent(decodedText))
-                                .then(response => response.text())
-                                .then(html => {{
-                                    mensagemBox.innerHTML = html;
-                                }})
-                                .catch(err => {{
-                                    mensagemBox.innerHTML = "Erro ao validar código.";
-                                }});
-                        }}).catch(err => {{
-                            console.error('Erro ao parar o scanner', err);
-                        }});
-                    }},
-                    errorMessage => {{
-                        // erro silencioso
-                    }}
-                ).catch(err => {{
-                    mensagemBox.innerHTML = "Não foi possível acessar a câmera.";
-                }});
-            }});
+                        });
+                    } else {
+                        mensagemBox.innerHTML = "Nenhuma câmera encontrada.";
+                        btnScan.style.display = 'block';
+                    }
+                }).catch(err => {
+                    mensagemBox.innerHTML = "Erro ao acessar câmeras: " + err;
+                    btnScan.style.display = 'block';
+                });
+            });
         </script>
     </body>
     </html>
