@@ -68,7 +68,7 @@ def home():
                         }});
                     }},
                     errorMessage => {{
-                        // console.log('Erro no scan', errorMessage);
+                        // erro silencioso
                     }}
                 ).catch(err => {{
                     mensagemBox.innerHTML = "Não foi possível acessar a câmera.";
@@ -82,7 +82,6 @@ def home():
 
 @app.route("/validar/<codigo>")
 def validar_qrcode(codigo):
-    # Lê códigos usados
     with open(ARQUIVO_USADOS, "r") as f:
         usados = json.load(f)
 
@@ -96,7 +95,6 @@ def validar_qrcode(codigo):
             json.dump(usados, f, indent=4)
         cor = "#4CAF50"
 
-    # Retorna só o conteúdo da mensagem estilizada para colocar na página via fetch
     html = f"""
     <div style="background:{cor};padding:20px;border-radius:10px;color:white;font-size:22px;max-width:500px;margin:20px auto;">
         {mensagem}
@@ -105,4 +103,5 @@ def validar_qrcode(codigo):
     return html
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
